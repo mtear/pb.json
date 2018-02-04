@@ -158,7 +158,7 @@ namespace pb.json
             get
             {
                 JSONArray ja = new JSONArray();
-                foreach(object o in items.Values)
+                foreach (object o in items.Values)
                 {
                     ja.Put(o);
                 }
@@ -306,14 +306,14 @@ namespace pb.json
             sb.Append('{');
             int i = 0;
 
-            foreach(string name in jo.items.Keys)
+            foreach (string name in jo.items.Keys)
             {
                 sb.Append(StringifyValue(name)).Append(":");
-                if(items[name] is JSONObject)
+                if (items[name] is JSONObject)
                 {
                     sb.Append(items[name]);
                 }
-                else if(items[name] is JSONArray)
+                else if (items[name] is JSONArray)
                 {
                     sb.Append(items[name].ToString());
                 }
@@ -336,9 +336,9 @@ namespace pb.json
         private string StringifyValue(object o)
         {
             if (o == null) return "null";
-            if (o is string) return "\""+((string)o).Replace("\\", "\\\\").Replace("\t", "\\t")
+            if (o is string) return "\"" + ((string)o).Replace("\\", "\\\\").Replace("\t", "\\t")
                     .Replace("\b", "\\b").Replace("\f", "\\f").Replace("\n", "\\n")
-                    .Replace("\r", "\\r").Replace("\"", "\\\"")+"\"";
+                    .Replace("\r", "\\r").Replace("\"", "\\\"") + "\"";
             else return o.ToString().ToLower(); //To lower for booleans
         }
 
@@ -378,13 +378,13 @@ namespace pb.json
             StringBuilder buffer = new StringBuilder();
 
             //Loop through every character in the Json string
-            for(int i = 0; i < json.Length; i++)
+            for (int i = 0; i < json.Length; i++)
             {
                 char c = json[i];
-                if(inLiteral && !(!escapingCharacter && c == '"') )
+                if (inLiteral && !(!escapingCharacter && c == '"'))
                 {
                     //Handle escape characters in string literals
-                    if(inLiteral && c == '\\')
+                    if (inLiteral && c == '\\')
                     {
                         if (escapingCharacter)
                         {
@@ -419,37 +419,39 @@ namespace pb.json
                             //Add to the buffer if inside a literal
                             buffer.Append(c);
                         }
-                    }else if(c == '"' && escapingCharacter && inLiteral)
+                    }
+                    else if (c == '"' && escapingCharacter && inLiteral)
                     {
                         buffer.Append('"'); escapingCharacter = false;
                     }
                 }
-                else if(inNestedJsonObject && c != '}' || inNestedArray && c!= ']')
+                else if (inNestedJsonObject && c != '}' || inNestedArray && c != ']')
                 {
                     //Add to the buffer if inside a nested Json object
                     buffer.Append(c);
                 }
                 else if (char.IsWhiteSpace(c))
                 { //Whitespace characters
-                    if(buildingPrimitiveValue && !inNestedJsonObject && !inNestedArray)
+                    if (buildingPrimitiveValue && !inNestedJsonObject && !inNestedArray)
                     {
                         //This would mean we didn't enclose a literal and are looking for a value
                         //The buffer should be a value
                         jo.Put(currentFieldName, ParseValue(buffer.ToString()));
-                        buffer.Clear();
+                        buffer.Length = 0;
                         expectingName = true;
                         buildingPrimitiveValue = false;
                     }
-                }else if(c == '{')
+                }
+                else if (c == '{')
                 {
                     bracketCounter++;
-                    if(bracketCounter == 1 && hasEnteredObject)
+                    if (bracketCounter == 1 && hasEnteredObject)
                     {
                         throw new MalformedJsonException();
                     }
                     hasEnteredObject = true;
 
-                    if(bracketCounter > 1)
+                    if (bracketCounter > 1)
                     {
                         //This should only happen when expecting a value
                         if (expectingName)
@@ -459,7 +461,8 @@ namespace pb.json
                         inNestedJsonObject = true;
                         buffer.Append(c);
                     }
-                }else if(c == '}')
+                }
+                else if (c == '}')
                 {
                     bracketCounter--;
                     if (bracketCounter < 0)
@@ -480,32 +483,33 @@ namespace pb.json
 
                             //Parse the inner object and add it 
                             jo.Put(currentFieldName, ParseJSONObject(buffer.ToString()));
-                            buffer.Clear();
+                            buffer.Length = 0;
 
                             //We need a name now
                             expectingName = true;
                         }
-                    }else if(bracketCounter == 0)
+                    }
+                    else if (bracketCounter == 0)
                     {
                         if (!expectingName && buildingPrimitiveValue)
                         {
                             //We weren't in an object and a bracket appeared
                             //The object should be ending in this case and this is the final value
                             jo.Put(currentFieldName, ParseValue(buffer.ToString()));
-                            buffer.Clear();
+                            buffer.Length = 0;
                             expectingName = true;
                             buildingPrimitiveValue = false;
                         }
                     }
                 }
-                else if(c == '[')
+                else if (c == '[')
                 {
                     if (!hasEnteredObject)
                     {
                         throw new MalformedJsonException();
                     }
                     curlyBracketCounter++;
-                    if(curlyBracketCounter > 0)
+                    if (curlyBracketCounter > 0)
                     {
                         inNestedArray = true;
 
@@ -518,13 +522,14 @@ namespace pb.json
                         buffer.Append(c);
                     }
                 }
-                else if(c == ']')
+                else if (c == ']')
                 {
                     curlyBracketCounter--;
-                    if(curlyBracketCounter < 0)
+                    if (curlyBracketCounter < 0)
                     {
                         throw new MalformedJsonException();
-                    }else if(curlyBracketCounter == 0)
+                    }
+                    else if (curlyBracketCounter == 0)
                     {
                         //This should only happen when expecting a value
                         if (expectingName)
@@ -536,13 +541,13 @@ namespace pb.json
 
                         //Parse the inner object and add it 
                         jo.Put(currentFieldName, new JSONArray(buffer.ToString()));
-                        buffer.Clear();
+                        buffer.Length = 0;
 
                         //We need a name now
                         expectingName = true;
                     }
                 }
-                else if(c == '"')
+                else if (c == '"')
                 { //Here we either just started or ended a literal
                     inLiteral = !inLiteral;
                     //If we're looking for a name and we just exited a literal
@@ -551,30 +556,32 @@ namespace pb.json
                         if (expectingName)
                         { //We were looking for a name, store it
                             //Store the field name
-                            currentFieldName = buffer.ToString(); buffer.Clear();
+                            currentFieldName = buffer.ToString(); buffer.Length = 0;
                             //Expecting value now
                             expectingName = !expectingName;
                         }
                         else
                         { //We were expecting a value so we must have a string literal
-                            jo.Put(currentFieldName, buffer.ToString()); buffer.Clear();
+                            jo.Put(currentFieldName, buffer.ToString()); buffer.Length = 0;
                             //Next up is a name
                             expectingName = true;
                         }
                     }
-                }else if(c == ':')
+                }
+                else if (c == ':')
                 {
                     //We should have already flipped the switch in the quote logic
                     //So we could probably just ignore this
                     if (expectingName) throw new MalformedJsonException();
-                }else if(c == ',')
+                }
+                else if (c == ',')
                 {
                     if (!expectingName)
                     {
                         //This would mean we didn't enclose a literal and are looking for a value
                         //The buffer should be a value
                         jo.Put(currentFieldName, ParseValue(buffer.ToString()));
-                        buffer.Clear();
+                        buffer.Length = 0;
                         expectingName = true;
                         buildingPrimitiveValue = false;
                     }
@@ -582,7 +589,7 @@ namespace pb.json
                 else
                 {
                     //Only accept other characters if in an object and looking for a value
-                    if(hasEnteredObject && !expectingName)
+                    if (hasEnteredObject && !expectingName)
                     {
                         buffer.Append(c);
                         //We are creating a primitive type
@@ -609,7 +616,7 @@ namespace pb.json
             if (s == "") return null;
             if (s == null) return null;
             if (s == "true" || s == "false") return bool.Parse(s);
-            if(Regex.IsMatch(s, @"^[0-9-]+$"))
+            if (Regex.IsMatch(s, @"^[0-9-]+$"))
             {
                 try
                 {
@@ -620,7 +627,7 @@ namespace pb.json
                     return long.Parse(s);
                 }
             }
-            if(Regex.IsMatch(s, @"^[0-9.-]+$"))
+            if (Regex.IsMatch(s, @"^[0-9.-]+$"))
             {
                 return double.Parse(s);
             }
@@ -1086,10 +1093,10 @@ namespace pb.json
                 { //Whitespace characters
                     if (buildingPrimitiveValue)
                     {
-                        if(buffer.Length > 0)
+                        if (buffer.Length > 0)
                         {
                             jo.Put(ParseValue(buffer.ToString()));
-                            buffer.Clear();
+                            buffer.Length = 0;
                             buildingPrimitiveValue = false;
                             expectingValue = false;
                         }
@@ -1105,7 +1112,7 @@ namespace pb.json
                     hasEnteredArray = true;
                     expectingValue = true;
                 }
-                else if(c == ']')
+                else if (c == ']')
                 {
                     squareBracketCounter--;
                     if (squareBracketCounter < 0)
@@ -1119,7 +1126,7 @@ namespace pb.json
                         if (buffer.Length > 0)
                         {
                             jo.Put(ParseValue(buffer.ToString()));
-                            buffer.Clear();
+                            buffer.Length = 0;
                         }
                         expectingValue = false;
                     }
@@ -1149,7 +1156,7 @@ namespace pb.json
 
                             //Parse the inner object and add it 
                             jo.Put(new JSONObject(buffer.ToString()));
-                            buffer.Clear();
+                            buffer.Length = 0;
                         }
                     }
                 }
@@ -1160,7 +1167,7 @@ namespace pb.json
                     if (!inLiteral) //If we just ended a literal...
                     {
                         //We were expecting a value so we must have a string literal
-                        jo.Put(buffer.ToString()); buffer.Clear();
+                        jo.Put(buffer.ToString()); buffer.Length = 0;
                     }
                 }
                 else if (c == ',')
@@ -1170,7 +1177,7 @@ namespace pb.json
                     if (buffer.Length > 0)
                     {
                         jo.Put(ParseValue(buffer.ToString()));
-                        buffer.Clear();
+                        buffer.Length = 0;
                         expectingValue = true;
                     }
                 }
